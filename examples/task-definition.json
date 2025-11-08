@@ -1,0 +1,30 @@
+{
+  "family": "my-app",
+  "taskRoleArn": "arn:aws:iam::123456789:role/ecsTaskRole",
+  "executionRoleArn": "arn:aws:iam::123456789:role/ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [
+    {
+      "name": "web",
+      "image": "123456789.dkr.ecr.us-east-1.amazonaws.com/my-app:v1.2.2",
+      "cpu": 256,
+      "memory": 512,
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "protocol": "tcp"
+        }
+      ]
+    },
+    {
+      "name": "nginx",
+      "image": "nginx:latest",
+      "cpu": 128,
+      "memory": 256
+    }
+  ],
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512"
+}
