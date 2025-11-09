@@ -112,7 +112,7 @@ func TestOverwriteOption(t *testing.T) {
 			}
 
 			if tt.shouldUpdateFile {
-				if originalStat.ModTime() == newStat.ModTime() && originalStat.Size() == newStat.Size() {
+				if originalStat.ModTime().Equal(newStat.ModTime()) && originalStat.Size() == newStat.Size() {
 					t.Errorf("File should have been modified but wasn't")
 				}
 				// Verify content was updated

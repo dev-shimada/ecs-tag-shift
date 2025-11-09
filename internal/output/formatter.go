@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/dev-shimada/ecs-tag-shift/internal/taskdef"
 	"gopkg.in/yaml.v3"
@@ -73,7 +74,11 @@ func formatTaskDefinitionJSON(w io.Writer, taskDef *taskdef.TaskDefinition, show
 // formatTaskDefinitionYAML formats task definition as YAML
 func formatTaskDefinitionYAML(w io.Writer, taskDef *taskdef.TaskDefinition, showAll bool) error {
 	encoder := yaml.NewEncoder(w)
-	defer encoder.Close()
+	defer func() {
+		if err := encoder.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close YAML encoder: %v\n", err)
+		}
+	}()
 
 	if showAll {
 		return encoder.Encode(taskDef)
@@ -96,14 +101,24 @@ func formatTaskDefinitionYAML(w io.Writer, taskDef *taskdef.TaskDefinition, show
 
 // formatTaskDefinitionText formats task definition as text
 func formatTaskDefinitionText(w io.Writer, taskDef *taskdef.TaskDefinition, showAll bool) error {
-	fmt.Fprintf(w, "Family: %s\n", taskDef.Family)
-	if taskDef.Revision > 0 {
-		fmt.Fprintf(w, "Revision: %d\n", taskDef.Revision)
+	if _, err := fmt.Fprintf(w, "Family: %s\n", taskDef.Family); err != nil {
+		return err
 	}
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "Containers:")
+	if taskDef.Revision > 0 {
+		if _, err := fmt.Fprintf(w, "Revision: %d\n", taskDef.Revision); err != nil {
+			return err
+		}
+	}
+	if _, err := fmt.Fprintln(w); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintln(w, "Containers:"); err != nil {
+		return err
+	}
 	for _, c := range taskDef.ContainerDefinitions {
-		fmt.Fprintf(w, "  - %s: %s\n", c.Name, c.Image)
+		if _, err := fmt.Fprintf(w, "  - %s: %s\n", c.Name, c.Image); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -133,7 +148,11 @@ func formatContainerDefinitionsJSON(w io.Writer, containers []taskdef.ContainerD
 // formatContainerDefinitionsYAML formats container definitions as YAML
 func formatContainerDefinitionsYAML(w io.Writer, containers []taskdef.ContainerDefinition, showAll bool) error {
 	encoder := yaml.NewEncoder(w)
-	defer encoder.Close()
+	defer func() {
+		if err := encoder.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close YAML encoder: %v\n", err)
+		}
+	}()
 
 	if showAll {
 		return encoder.Encode(containers)
@@ -154,9 +173,13 @@ func formatContainerDefinitionsYAML(w io.Writer, containers []taskdef.ContainerD
 
 // formatContainerDefinitionsText formats container definitions as text
 func formatContainerDefinitionsText(w io.Writer, containers []taskdef.ContainerDefinition, showAll bool) error {
-	fmt.Fprintln(w, "Containers:")
+	if _, err := fmt.Fprintln(w, "Containers:"); err != nil {
+		return err
+	}
 	for _, c := range containers {
-		fmt.Fprintf(w, "  - %s: %s\n", c.Name, c.Image)
+		if _, err := fmt.Fprintf(w, "  - %s: %s\n", c.Name, c.Image); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -170,7 +193,11 @@ func FormatTaskDefinitionFull(w io.Writer, taskDef *taskdef.TaskDefinition, form
 		return encoder.Encode(taskDef)
 	case FormatYAML:
 		encoder := yaml.NewEncoder(w)
-		defer encoder.Close()
+		defer func() {
+			if err := encoder.Close(); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to close YAML encoder: %v\n", err)
+			}
+		}()
 		return encoder.Encode(taskDef)
 	default:
 		return fmt.Errorf("unsupported output format: %s", format)
@@ -186,7 +213,11 @@ func FormatContainerDefinitionsFull(w io.Writer, containers []taskdef.ContainerD
 		return encoder.Encode(containers)
 	case FormatYAML:
 		encoder := yaml.NewEncoder(w)
-		defer encoder.Close()
+		defer func() {
+			if err := encoder.Close(); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: failed to close YAML encoder: %v\n", err)
+			}
+		}()
 		return encoder.Encode(containers)
 	default:
 		return fmt.Errorf("unsupported output format: %s", format)

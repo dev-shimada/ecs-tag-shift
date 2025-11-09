@@ -40,3 +40,6 @@ jobs:
       env:
         COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: goveralls -coverprofile=covprofile -service=github
+
+    - name: IntegrationTest
+      run: ./tests/integration_test.sh

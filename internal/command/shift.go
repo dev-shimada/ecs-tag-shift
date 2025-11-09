@@ -41,7 +41,9 @@ func NewShiftCommand(globalMode *taskdef.LoadMode) *cobra.Command {
 	cmd.Flags().StringVarP(&opts.OutputFormat, "output", "o", "json", "Output format (json, yaml)")
 	cmd.Flags().BoolVarP(&opts.Overwrite, "overwrite", "w", false, "Overwrite input file (only with file input)")
 
-	cmd.MarkFlagRequired("tag")
+	if err := cmd.MarkFlagRequired("tag"); err != nil {
+		panic(err)
+	}
 
 	return cmd
 }
@@ -127,7 +129,11 @@ func writeToFile(filename string, data interface{}, format output.OutputFormat, 
 	if err != nil {
 		return fmt.Errorf("failed to open file for writing: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close file: %v\n", err)
+		}
+	}()
 
 	if isContainers {
 		containers := data.([]taskdef.ContainerDefinition)

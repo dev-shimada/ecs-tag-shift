@@ -126,7 +126,11 @@ func LoadFromFile(filename string, mode LoadMode) (interface{}, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "warning: failed to close file: %v\n", err)
+		}
+	}()
 
 	return Load(file, mode)
 }
